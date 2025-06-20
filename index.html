@@ -34,83 +34,87 @@
 </head>
 <body>
   <h1>Cued Speech Syllable Builder</h1>
-  <p>Tap a vowel card (turns blue). Drag a consonant card to the matching position to make a syllable.</p>
+  <p>Drag a consonant card to the Handshape Slot and a position card to the Position Slot. Tap a vowel card for the position (turns blue) to make a syllable. Tap other vowels to change it.</p>
   <div id="output">Syllable: None</div>
   <script>
     let handshapes = [
       // Handshape 1: p, b, m (light red)
-      { id: "1-p", label: "p (Lips closed)", x: 20, y: 50, consonant: "p", color: 'rgb(255, 200, 200)' },
-      { id: "1-b", label: "b (Lips closed voiced)", x: 20, y: 65, consonant: "b", color: 'rgb(255, 200, 200)' },
-      { id: "1-m", label: "m (Lips closed nasal)", x: 20, y: 80, consonant: "m", color: 'rgb(255, 200, 200)' },
+      { id: "1-p", label: "p (Lips closed)", origX: 20, origY: 150, x: 20, y: 150, consonant: "p", color: 'rgb(255, 200, 200)' },
+      { id: "1-b", label: "b (Lips closed voiced)", origX: 20, origY: 165, x: 20, y: 165, consonant: "b", color: 'rgb(255, 200, 200)' },
+      { id: "1-m", label: "m (Lips closed nasal)", origX: 20, origY: 180, x: 20, y: 180, consonant: "m", color: 'rgb(255, 200, 200)' },
       // Handshape 2: t, d, n, l (light green)
-      { id: "2-t", label: "t (Teeth visible)", x: 20, y: 160, consonant: "t", color: 'rgb(200, 255, 200)' },
-      { id: "2-d", label: "d (Teeth visible voiced)", x: 20, y: 175, consonant: "d", color: 'rgb(200, 255, 200)' },
-      { id: "2-n", label: "n (Tongue tip nasal)", x: 20, y: 190, consonant: "n", color: 'rgb(200, 255, 200)' },
-      { id: "2-l", label: "l (Tongue tip lateral)", x: 20, y: 205, consonant: "l", color: 'rgb(200, 255, 200)' },
+      { id: "2-t", label: "t (Teeth visible)", origX: 20, origY: 280, x: 20, y: 280, consonant: "t", color: 'rgb(200, 255, 200)' },
+      { id: "2-d", label: "d (Teeth visible voiced)", origX: 20, origY: 295, x: 20, y: 295, consonant: "d", color: 'rgb(200, 255, 200)' },
+      { id: "2-n", label: "n (Tongue tip nasal)", origX: 20, origY: 310, x: 20, y: 310, consonant: "n", color: 'rgb(200, 255, 200)' },
+      { id: "2-l", label: "l (Tongue tip lateral)", origX: 20, origY: 325, x: 20, y: 325, consonant: "l", color: 'rgb(200, 255, 200)' },
       // Handshape 3: k, g, ŋ (light yellow)
-      { id: "3-k", label: "k (Throat)", x: 20, y: 285, consonant: "k", color: 'rgb(255, 255, 200)' },
-      { id: "3-g", label: "g (Throat voiced)", x: 20, y: 300, consonant: "g", color: 'rgb(255, 255, 200)' },
-      { id: "3-ŋ", label: "ŋ (Throat nasal)", x: 20, y: 315, consonant: "ŋ", color: 'rgb(255, 255, 200)' },
+      { id: "3-k", label: "k (Throat)", origX: 20, origY: 425, x: 20, y: 425, consonant: "k", color: 'rgb(255, 255, 200)' },
+      { id: "3-g", label: "g (Throat voiced)", origX: 20, origY: 440, x: 20, y: 440, consonant: "g", color: 'rgb(255, 255, 200)' },
+      { id: "3-ŋ", label: "ŋ (Throat nasal)", origX: 20, origY: 455, x: 20, y: 455, consonant: "ŋ", color: 'rgb(255, 255, 200)' },
       // Handshape 4: f, v, ð (light orange)
-      { id: "4-f", label: "f (Lower lip to teeth)", x: 20, y: 395, consonant: "f", color: 'rgb(255, 220, 200)' },
-      { id: "4-v", label: "v (Lip to teeth voiced)", x: 20, y: 410, consonant: "v", color: 'rgb(255, 220, 200)' },
-      { id: "4-ð", label: "ð (Tongue between teeth)", x: 20, y: 425, consonant: "ð", color: 'rgb(255, 220, 200)' },
+      { id: "4-f", label: "f (Lower lip to teeth)", origX: 20, origY: 555, x: 20, y: 555, consonant: "f", color: 'rgb(255, 220, 200)' },
+      { id: "4-v", label: "v (Lip to teeth voiced)", origX: 20, origY: 570, x: 20, y: 570, consonant: "v", color: 'rgb(255, 220, 200)' },
+      { id: "4-ð", label: "ð (Tongue between teeth)", origX: 20, origY: 585, x: 20, y: 585, consonant: "ð", color: 'rgb(255, 220, 200)' },
       // Handshape 5: s, z, ʃ, ʒ (light blue)
-      { id: "5-s", label: "s (Teeth together)", x: 20, y: 505, consonant: "s", color: 'rgb(200, 200, 255)' },
-      { id: "5-z", label: "z (Teeth together voiced)", x: 20, y: 520, consonant: "z", color: 'rgb(200, 200, 255)' },
-      { id: "5-ʃ", label: "ʃ (Lips protruded)", x: 20, y: 535, consonant: "ʃ", color: 'rgb(200, 200, 255)' },
-      { id: "5-ʒ", label: "ʒ (Lips protruded voiced)", x: 20, y: 550, consonant: "ʒ", color: 'rgb(200, 200, 255)' },
+      { id: "5-s", label: "s (Teeth together)", origX: 20, origY: 685, x: 20, y: 685, consonant: "s", color: 'rgb(200, 200, 255)' },
+      { id: "5-z", label: "z (Teeth together voiced)", origX: 20, origY: 700, x: 20, y: 700, consonant: "z", color: 'rgb(200, 200, 255)' },
+      { id: "5-ʃ", label: "ʃ (Lips protruded)", origX: 20, origY: 715, x: 20, y: 715, consonant: "ʃ", color: 'rgb(200, 200, 255)' },
+      { id: "5-ʒ", label: "ʒ (Lips protruded voiced)", origX: 20, origY: 730, x: 20, y: 730, consonant: "ʒ", color: 'rgb(200, 200, 255)' },
       // Handshape 6: h, w, hw (light purple)
-      { id: "6-h", label: "h (Open throat)", x: 20, y: 630, consonant: "h", color: 'rgb(220, 200, 255)' },
-      { id: "6-w", label: "w (Rounded lips)", x: 20, y: 645, consonant: "w", color: 'rgb(220, 200, 255)' },
-      { id: "6-hw", label: "hw (Rounded forceful)", x: 20, y: 660, consonant: "hw", color: 'rgb(220, 200, 255)' },
+      { id: "6-h", label: "h (Open throat)", origX: 20, origY: 830, x: 20, y: 830, consonant: "h", color: 'rgb(220, 200, 255)' },
+      { id: "6-w", label: "w (Rounded lips)", origX: 20, origY: 845, x: 20, y: 845, consonant: "w", color: 'rgb(220, 200, 255)' },
+      { id: "6-hw", label: "hw (Rounded forceful)", origX: 20, origY: 860, x: 20, y: 860, consonant: "hw", color: 'rgb(220, 200, 255)' },
       // Handshape 7: ʧ, ʤ, j (light cyan)
-      { id: "7-ʧ", label: "ʧ (Lips protruded)", x: 20, y: 740, consonant: "ʧ", color: 'rgb(200, 255, 255)' },
-      { id: "7-ʤ", label: "ʤ (Lips protruded voiced)", x: 20, y: 755, consonant: "ʤ", color: 'rgb(200, 255, 255)' },
-      { id: "7-j", label: "j (Tongue to palate)", x: 20, y: 770, consonant: "j", color: 'rgb(200, 255, 255)' },
+      { id: "7-ʧ", label: "ʧ (Lips protruded)", origX: 20, origY: 960, x: 20, y: 960, consonant: "ʧ", color: 'rgb(200, 255, 255)' },
+      { id: "7-ʤ", label: "ʤ (Lips protruded voiced)", origX: 20, origY: 975, x: 20, y: 975, consonant: "ʤ", color: 'rgb(200, 255, 255)' },
+      { id: "7-j", label: "j (Tongue to palate)", origX: 20, origY: 990, x: 20, y: 990, consonant: "j", color: 'rgb(200, 255, 255)' },
       // Handshape 8: θ, r (light pink)
-      { id: "8-θ", label: "θ (Tongue between teeth)", x: 20, y: 850, consonant: "θ", color: 'rgb(255, 200, 220)' },
-      { id: "8-r", label: "r (Lips rounded)", x: 20, y: 865, consonant: "r", color: 'rgb(255, 200, 220)' }
+      { id: "8-θ", label: "θ (Tongue between teeth)", origX: 20, origY: 1090, x: 20, y: 1090, consonant: "θ", color: 'rgb(255, 200, 220)' },
+      { id: "8-r", label: "r (Lips rounded)", origX: 20, origY: 1105, x: 20, y: 1105, consonant: "r", color: 'rgb(255, 200, 220)' }
     ];
     let positions = [
       {
-        label: "Mouth (æ,ɑ,ʌ)", x: 350, y: 100, color: 'rgb(180, 220, 255)', vowels: [
-          { label: "æ", x: 510, y: 100, value: "æ", mouthShape: "Open mouth (æ)" },
-          { label: "ɑ", x: 575, y: 100, value: "ɑ", mouthShape: "Relaxed open (ɑ)" },
-          { label: "ʌ", x: 640, y: 100, value: "ʌ", mouthShape: "Mid central (ʌ)" }
+        label: "Mouth", origX: 350, origY: 150, x: 350, y: 150, color: 'rgb(180, 220, 255)', vowels: [
+          { label: "æ", x: 560, y: 150, value: "æ", mouthShape: "Open mouth (æ)" },
+          { label: "ɑ", x: 625, y: 150, value: "ɑ", mouthShape: "Relaxed open (ɑ)" },
+          { label: "ʌ", x: 690, y: 150, value: "ʌ", mouthShape: "Mid central (ʌ)" }
         ]
       },
       {
-        label: "Chin (ɛ,ɪ,e)", x: 350, y: 250, color: 'rgb(220, 180, 255)', vowels: [
-          { label: "ɛ", x: 510, y: 250, value: "ɛ", mouthShape: "Mid open (ɛ)" },
-          { label: "ɪ", x: 575, y: 250, value: "ɪ", mouthShape: "Small opening (ɪ)" },
-          { label: "e", x: 640, y: 250, value: "e", mouthShape: "Mid closed (e)" }
+        label: "Chin", origX: 350, origY: 300, x: 350, y: 300, color: 'rgb(220, 180, 255)', vowels: [
+          { label: "ɛ", x: 560, y: 300, value: "ɛ", mouthShape: "Mid open (ɛ)" },
+          { label: "ɪ", x: 625, y: 300, value: "ɪ", mouthShape: "Small opening (ɪ)" },
+          { label: "e", x: 690, y: 300, value: "e", mouthShape: "Mid closed (e)" }
         ]
       },
       {
-        label: "Throat (i,u,ʊ)", x: 350, y: 400, color: 'rgb(180, 255, 220)', vowels: [
-          { label: "i", x: 510, y: 400, value: "i", mouthShape: "Smile (i)" },
-          { label: "u", x: 575, y: 400, value: "u", mouthShape: "Rounded tight (u)" },
-          { label: "ʊ", x: 640, y: 400, value: "ʊ", mouthShape: "Rounded lax (ʊ)" }
+        label: "Throat", origX: 350, origY: 450, x: 350, y: 450, color: 'rgb(180, 255, 220)', vowels: [
+          { label: "i", x: 560, y: 450, value: "i", mouthShape: "Smile (i)" },
+          { label: "u", x: 625, y: 450, value: "u", mouthShape: "Rounded tight (u)" },
+          { label: "ʊ", x: 690, y: 450, value: "ʊ", mouthShape: "Rounded lax (ʊ)" }
         ]
       },
       {
-        label: "Side (o,ɔ,aɪ,aʊ)", x: 350, y: 550, color: 'rgb(255, 220, 180)', vowels: [
-          { label: "o", x: 510, y: 550, value: "o", mouthShape: "Rounded mid (o)" },
-          { label: "ɔ", x: 575, y: 550, value: "ɔ", mouthShape: "Rounded open (ɔ)" },
-          { label: "aɪ", x: 640, y: 550, value: "aɪ", mouthShape: "Diphthong to smile (aɪ)" },
-          { label: "aʊ", x: 705, y: 550, value: "aʊ", mouthShape: "Diphthong to round (aʊ)" }
+        label: "Side", origX: 350, origY: 600, x: 350, y: 600, color: 'rgb(255, 220, 180)', vowels: [
+          { label: "o", x: 560, y: 600, value: "o", mouthShape: "Rounded mid (o)" },
+          { label: "ɔ", x: 625, y: 600, value: "ɔ", mouthShape: "Rounded open (ɔ)" },
+          { label: "aɪ", x: 690, y: 600, value: "aɪ", mouthShape: "Diphthong to smile (aɪ)" },
+          { label: "aʊ", x: 755, y: 600, value: "aʊ", mouthShape: "Diphthong to round (aʊ)" }
         ]
       }
     ];
-    let draggedHandshape = null;
+    let slots = [
+      { label: "Handshape Slot", x: 20, y: 50, width: 200, height: 60, content: null },
+      { label: "Position Slot", x: 350, y: 50, width: 200, height: 60, content: null }
+    ];
+    let draggedCard = null;
     let selectedConsonant = null;
     let selectedVowel = null;
     let selectedVowelCard = null;
     let selectedPosition = null;
 
     function setup() {
-      createCanvas(800, 900);
+      createCanvas(850, 2700);
       // Enable touch events
       touchStarted = mousePressed;
       touchMoved = mouseDragged;
@@ -123,11 +127,38 @@
       textAlign(LEFT);
       textSize(16);
       fill(0);
-      text("Consonants", 20, 30);
-      text("Positions", 350, 80);
+      text("Consonants", 20, 130);
+      text("Positions", 350, 130);
+      // Draw slots
+      for (let slot of slots) {
+        fill(240);
+        stroke(0);
+        strokeWeight(2);
+        rect(slot.x, slot.y, slot.width, slot.height, 5);
+        textAlign(CENTER, CENTER);
+        textSize(14);
+        fill(0);
+        noStroke();
+        text(slot.label, slot.x + slot.width / 2, slot.y + slot.height / 2);
+        if (slot.content) {
+          fill(slot.content.color);
+          stroke(0);
+          strokeWeight(2);
+          rect(slot.x, slot.y, slot.width, slot.height, 5);
+          fill(0);
+          noStroke();
+          text(slot.content.label, slot.x + slot.width / 2, slot.y + slot.height / 2);
+        }
+      }
       // Draw handshapes
       for (let hs of handshapes) {
-        fill(draggedHandshape === hs ? 'rgb(180, 180, 180)' : hs.color);
+        if (draggedCard === hs) {
+          fill('rgb(180, 180, 180)');
+        } else if (slots[0].content && slots[0].content.id === hs.id) {
+          continue; // Skip if in slot
+        } else {
+          fill(hs.color);
+        }
         stroke(0);
         strokeWeight(2);
         rect(hs.x, hs.y, 150, 50, 5);
@@ -139,13 +170,19 @@
       }
       // Draw positions and vowel cards
       for (let pos of positions) {
-        fill(selectedPosition === pos ? pos.color.replace(/(\d+), (\d+), (\d+)/, '$1, $2, 255') : pos.color);
+        if (draggedCard === pos) {
+          fill('rgb(180, 180, 180)');
+        } else if (slots[1].content && slots[1].content.label === pos.label) {
+          continue; // Skip if in slot
+        } else {
+          fill(selectedPosition === pos ? pos.color.replace(/(\d+), (\d+), (\d+)/, '$1, $2, 255') : pos.color);
+        }
         stroke(0);
         strokeWeight(2);
-        rect(pos.x, pos.y, 150, 50, 5);
+        rect(pos.x, pos.y, 200, 60, 5);
         fill(0);
         noStroke();
-        text(pos.label, pos.x + 75, pos.y + 25);
+        text(pos.label, pos.x + 100, pos.y + 30);
         // Draw vowel sub-cards
         for (let vowel of pos.vowels) {
           fill(vowel === selectedVowelCard ? 'rgb(100, 150, 255)' : 240);
@@ -162,9 +199,18 @@
     function mousePressed() {
       // Check for consonant card selection
       for (let hs of handshapes) {
+        if (slots[0].content && slots[0].content.id === hs.id) continue; // Skip if in slot
         if (mouseX > hs.x && mouseX < hs.x + 150 && mouseY > hs.y && mouseY < hs.y + 50) {
-          draggedHandshape = hs;
+          draggedCard = hs;
           selectedConsonant = hs.consonant;
+          return;
+        }
+      }
+      // Check for position card selection
+      for (let pos of positions) {
+        if (slots[1].content && slots[1].content.label === pos.label) continue; // Skip if in slot
+        if (mouseX > pos.x && mouseX < pos.x + 200 && mouseY > pos.y && mouseY < pos.y + 60) {
+          draggedCard = pos;
           return;
         }
       }
@@ -175,6 +221,11 @@
             selectedVowel = vowel.value;
             selectedVowelCard = vowel;
             selectedPosition = pos;
+            // Update syllable if handshape and position slots are filled and position matches
+            if (slots[0].content && slots[1].content && slots[1].content.label === pos.label) {
+              let syllable = slots[0].content.consonant + selectedVowel;
+              document.getElementById("output").innerText = `Syllable: /${syllable}/`;
+            }
             return;
           }
         }
@@ -182,28 +233,42 @@
     }
 
     function mouseReleased() {
-      if (draggedHandshape && selectedConsonant && selectedVowel && selectedPosition) {
-        for (let pos of positions) {
-          if (mouseX > pos.x && mouseX < pos.x + 150 && mouseY > pos.y && mouseY < pos.y + 50) {
-            // Check if the vowel belongs to the dropped position
-            if (pos.vowels.some(v => v.value === selectedVowel)) {
-              let syllable = selectedConsonant + selectedVowel;
+      if (draggedCard) {
+        // Check for slot drops
+        for (let slot of slots) {
+          if (mouseX > slot.x && mouseX < slot.x + slot.width && mouseY > slot.y && mouseY < slot.y + slot.height) {
+            let prevContent = slot.content;
+            if (slot.label === "Handshape Slot" && draggedCard.consonant) {
+              slot.content = draggedCard;
+              selectedConsonant = draggedCard.consonant;
+              // Return previous handshape to original position
+              if (prevContent) {
+                prevContent.x = prevContent.origX;
+                prevContent.y = prevContent.origY;
+              }
+            } else if (slot.label === "Position Slot" && !draggedCard.consonant) {
+              slot.content = draggedCard;
+              // Return previous position to original position
+              if (prevContent) {
+                prevContent.x = prevContent.origX;
+                prevContent.y = prevContent.origY;
+              }
+            }
+            // Try to form syllable if both slots filled and vowel selected
+            if (slots[0].content && slots[1].content && selectedVowel && slots[1].content.vowels.some(v => v.value === selectedVowel)) {
+              let syllable = slots[0].content.consonant + selectedVowel;
               document.getElementById("output").innerText = `Syllable: /${syllable}/`;
-              // Reset selections
-              selectedVowel = null;
-              selectedVowelCard = null;
-              selectedPosition = null;
             }
           }
         }
       }
-      draggedHandshape = null;
+      draggedCard = null;
     }
 
     function mouseDragged() {
-      if (draggedHandshape) {
-        draggedHandshape.x = mouseX - 75;
-        draggedHandshape.y = mouseY - 25;
+      if (draggedCard) {
+        draggedCard.x = mouseX - (draggedCard.consonant ? 75 : 100);
+        draggedCard.y = mouseY - (draggedCard.consonant ? 25 : 30);
       }
     }
   </script>
