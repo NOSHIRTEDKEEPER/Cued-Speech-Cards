@@ -11,8 +11,8 @@
   <div id="output">Syllable: None</div>
 <script>
 let handshapes = [
-  { label: "P_Handshape", consonant: "p", x: 20, y: 20, origX: 20, origY: 20, color: "rgb(255, 200, 200)", img: null },
-  { label: "T_Handshape", consonant: "t", x: 240, y: 20, origX: 240, origY: 20, color: "rgb(200, 255, 200)", img: null }
+  { label: "P Handshape", consonant: "p", x: 20, y: 20, origX: 20, origY: 20, color: "rgb(255, 200, 200)" },
+  { label: "T Handshape", consonant: "t", x: 240, y: 20, origX: 240, origY: 20, color: "rgb(200, 255, 200)" }
 ];
 let positions = [
   { 
@@ -20,7 +20,6 @@ let positions = [
     x: 20, y: 200, 
     origX: 20, origY: 200, 
     color: "rgb(200, 200, 255)", 
-    img: null,
     vowels: [
       { label: "æ", value: "æ", x: 20, y: 270 },
       { label: "ɑ", value: "ɑ", x: 80, y: 270 },
@@ -32,7 +31,6 @@ let positions = [
     x: 240, y: 200, 
     origX: 240, origY: 200, 
     color: "rgb(255, 255, 200)", 
-    img: null,
     vowels: [
       { label: "ɛ", value: "ɛ", x: 240, y: 270 },
       { label: "ɪ", value: "ɪ", x: 300, y: 270 }
@@ -47,16 +45,6 @@ let draggedCard = null;
 let selectedVowel = null;
 let selectedVowelCard = null;
 let selectedPosition = null;
-let isDraggingFromSlot = false;
-
-function preload() {
-  for (let hs of handshapes) {
-    hs.img = loadImage(`images/${hs.label}.png`);
-  }
-  for (let pos of positions) {
-    pos.img = loadImage(`images/${pos.label}.png`);
-  }
-}
 
 function setup() {
   createCanvas(460, 350);
@@ -66,6 +54,7 @@ function setup() {
 
 function draw() {
   background(220);
+  // Draw slots
   for (let slot of slots) {
     fill(255);
     stroke(0);
@@ -74,26 +63,40 @@ function draw() {
     fill(0);
     noStroke();
     text(slot.label, slot.x + slot.width / 2, slot.y + slot.height / 2);
-    if (slot.content && !isDraggingFromSlot) {
-      image(slot.content.img, slot.x, slot.y, slot.width, slot.height);
+    if (slot.content) {
+      fill(slot.content.color);
+      stroke(0);
+      strokeWeight(2);
+      rect(slot.x, slot.y, slot.width, slot.height, 5);
+      fill(0);
+      noStroke();
+      text(slot.content.label, slot.x + slot.width / 2, slot.y + slot.height / 2);
     }
   }
+  // Draw handshapes
   for (let hs of handshapes) {
     if (draggedCard === hs) {
-      image(hs.img, hs.x, hs.y, 200, 60);
-    } else if (!slots[0].content || slots[0].content !== hs) {
+      fill("rgb(180, 180, 180)");
+    } else {
       fill(hs.color);
-      rect(hs.x, hs.y, 200, 60, 5);
-      image(hs.img, hs.x, hs.y, 200, 60);
     }
+    stroke(0);
+    strokeWeight(2);
+    rect(hs.x, hs.y, 200, 60, 5);
+    fill(0);
+    noStroke();
+    text(hs.label, hs.x + 100, hs.y + 30);
   }
+  // Draw positions and vowel cards (skip if in slot)
   for (let pos of positions) {
     if (slots[1].content && slots[1].content.label === pos.label) continue;
     fill(selectedPosition === pos ? pos.color.replace(/(\d+), (\d+), (\d+)/, "$1, $2, 255") : pos.color);
     stroke(0);
     strokeWeight(2);
     rect(pos.x, pos.y, 200, 60, 5);
-    image(pos.img, pos.x, pos.y, 200, 60);
+    fill(0);
+    noStroke();
+    text(pos.label, pos.x + 100, pos.y + 30);
     for (let vowel of pos.vowels) {
       fill(vowel === selectedVowelCard ? "rgb(100, 150, 255)" : 240);
       stroke(0);
@@ -104,6 +107,7 @@ function draw() {
       text(vowel.label, vowel.x + 25, vowel.y + 25);
     }
   }
+  // Draw vowel selection area for position in slot
   if (slots[1].content) {
     let pos = slots[1].content;
     for (let i = 0; i < pos.vowels.length; i++) {
@@ -127,14 +131,7 @@ function draw() {
 }
 
 function mousePressed() {
-  for (let slot of slots) {
-    if (slot.content && mouseX > slot.x && mouseX < slot.x + slot.width && mouseY > slot.y && mouseY < slot.y + slot.height) {
-      draggedCard = slot.content;
-      isDraggingFromSlot = true;
-      slot.content = null;
-      return;
-    }
-  }
+  // Check for handshape or position selection
   for (let hs of handshapes) {
     if (mouseX > hs.x && mouseX < hs.x + 200 && mouseY > hs.y && mouseY < hs.y + 60) {
       draggedCard = hs;
@@ -159,6 +156,7 @@ function mousePressed() {
       }
     }
   }
+  // Check for vowel selection in selection area
   if (slots[1].content) {
     let pos = slots[1].content;
     for (let i = 0; i < pos.vowels.length; i++) {
@@ -189,37 +187,42 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (draggedCard) {
-    let droppedInSlot = false;
     for (let slot of slots) {
       if (mouseX > slot.x && mouseX < slot.x + slot.width && mouseY > slot.y && mouseY < slot.y + slot.height) {
-        if (slot.label === "Handshape Slot" && draggedCard.consonant && !isDraggingFromSlot) {
+        let prevContent = slot.content;
+        if (slot.label === "Handshape Slot" && draggedCard.consonant) {
           slot.content = draggedCard;
+          if (prevContent) {
+            prevContent.x = prevContent.origX;
+            prevContent.y = prevContent.origY;
+          }
           if (slots[1].content && selectedVowel) {
             let syllable = draggedCard.consonant + selectedVowel;
             document.getElementById("output").innerText = `Syllable: /${syllable}/`;
           } else {
             document.getElementById("output").innerText = `Syllable: /${draggedCard.consonant}/`;
           }
-          droppedInSlot = true;
-        } else if (slot.label === "Position Slot" && !draggedCard.consonant && !isDraggingFromSlot) {
+        } else if (slot.label === "Position Slot" && !draggedCard.consonant) {
           slot.content = draggedCard;
           selectedVowel = null;
           selectedVowelCard = null;
           selectedPosition = null;
+          if (prevContent) {
+            prevContent.x = prevContent.origX;
+            prevContent.y = prevContent.origY;
+          }
           if (slots[0].content) {
             document.getElementById("output").innerText = `Syllable: /${slots[0].content.consonant}/`;
           } else {
             document.getElementById("output").innerText = `Syllable: None`;
           }
-          droppedInSlot = true;
         }
+        draggedCard = null;
+        return;
       }
     }
-    if (!droppedInSlot) {
-      draggedCard.x = draggedCard.origX;
-      draggedCard.y = draggedCard.origY;
-    }
-    isDraggingFromSlot = false;
+    draggedCard.x = draggedCard.origX;
+    draggedCard.y = draggedCard.origY;
     draggedCard = null;
   }
 }
