@@ -46,7 +46,7 @@
             border-radius: 5px;
             padding: 10px;
             text-align: center;
-            min-width: 100px;
+            min-width: 120px;
         }
         .phoneme-card p {
             margin: 5px 0;
@@ -105,30 +105,30 @@
         // Phoneme to Cued Speech mapping
         const phonemeMap = {
             "Consonants": {
-                "p": { "ipa": "/p/", "cue": "Handshape 1, Throat-Side" },
-                "b": { "ipa": "/b/", "cue": "Handshape 1, Throat-Side" },
-                "m": { "ipa": "/m/", "cue": "Handshape 5, Throat-Side" },
-                "f": { "ipa": "/f/", "cue": "Handshape 4, Throat-Side" },
-                "v": { "ipa": "/v/", "cue": "Handshape 4, Throat-Side" },
-                "Th": { "ipa": "/ð/", "cue": "Handshape 2, Throat-Side" },
-                "th": { "ipa": "/θ/", "cue": "Handshape 2, Throat-Side" },
-                "t": { "ipa": "/t/", "cue": "Handshape 1, Side" },
-                "d": { "ipa": "/d/", "cue": "Handshape 1, Side" },
-                "n": { "ipa": "/n/", "cue": "Handshape 5, Side" },
-                "s": { "ipa": "/s/", "cue": "Handshape 4, Side" },
-                "z": { "ipa": "/z/", "cue": "Handshape 4, Side" },
-                "l": { "ipa": "/l/", "cue": "Handshape 3, Side" },
-                "r": { "ipa": "/r/", "cue": "Handshape 3, Side" },
-                "sh": { "ipa": "/ʃ/", "cue": "Handshape 4, Chin" },
-                "zh": { "ipa": "/ʒ/", "cue": "Handshape 4, Chin" },
-                "ch": { "ipa": "/tʃ/", "cue": "Handshape 2, Chin" },
-                "j": { "ipa": "/dʒ/", "cue": "Handshape 2, Chin" },
-                "y": { "ipa": "/j/", "cue": "Handshape 6, Chin" },
-                "k": { "ipa": "/k/", "cue": "Handshape 2, Side-Throat" },
-                "g": { "ipa": "/g/", "cue": "Handshape 2, Side-Throat" },
-                "ng": { "ipa": "/ŋ/", "cue": "Handshape 5, Side-Throat" },
-                "h": { "ipa": "/h/", "cue": "Handshape 4, Side-Throat" },
-                "w": { "ipa": "/w/", "cue": "Handshape 6, Side-Throat" }
+                "p": { "ipa": "/p/", "cue": "Handshape 1" },
+                "b": { "ipa": "/b/", "cue": "Handshape 1" },
+                "m": { "ipa": "/m/", "cue": "Handshape 5" },
+                "f": { "ipa": "/f/", "cue": "Handshape 4" },
+                "v": { "ipa": "/v/", "cue": "Handshape 4" },
+                "Th": { "ipa": "/ð/", "cue": "Handshape 2" },
+                "th": { "ipa": "/θ/", "cue": "Handshape 2" },
+                "t": { "ipa": "/t/", "cue": "Handshape 1" },
+                "d": { "ipa": "/d/", "cue": "Handshape 1" },
+                "n": { "ipa": "/n/", "cue": "Handshape 5" },
+                "s": { "ipa": "/s/", "cue": "Handshape 4" },
+                "z": { "ipa": "/z/", "cue": "Handshape 4" },
+                "l": { "ipa": "/l/", "cue": "Handshape 3" },
+                "r": { "ipa": "/r/", "cue": "Handshape 3" },
+                "sh": { "ipa": "/ʃ/", "cue": "Handshape 4" },
+                "zh": { "ipa": "/ʒ/", "cue": "Handshape 4" },
+                "ch": { "ipa": "/tʃ/", "cue": "Handshape 2" },
+                "j": { "ipa": "/dʒ/", "cue": "Handshape 2" },
+                "y": { "ipa": "/j/", "cue": "Handshape 6" },
+                "k": { "ipa": "/k/", "cue": "Handshape 2" },
+                "g": { "ipa": "/g/", "cue": "Handshape 2" },
+                "ng": { "ipa": "/ŋ/", "cue": "Handshape 5" },
+                "h": { "ipa": "/h/", "cue": "Handshape 4" },
+                "w": { "ipa": "/w/", "cue": "Handshape 6" }
             },
             "Vowels": {
                 "ee": { "ipa": "/i/", "cue": "Side-Throat (ST)" },
@@ -150,62 +150,63 @@
             {
                 word: "they",
                 phonemes: [
-                    { ipa: "/ð/", cue: "Handshape 2, Throat-Side" },
-                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "Th", ipa: "/ð/", cue: "Handshape 2" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "2TSST"
+                cueSequence: "2ST"
             },
             {
                 word: "day",
                 phonemes: [
-                    { ipa: "/d/", cue: "Handshape 1, Side" },
-                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "d", ipa: "/d/", cue: "Handshape 1" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "1SST"
+                cueSequence: "1ST"
             },
             {
                 word: "way",
                 phonemes: [
-                    { ipa: "/w/", cue: "Handshape 6, Side-Throat" },
-                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "w", ipa: "/w/", cue: "Handshape 6" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "6STST"
+                cueSequence: "6ST"
             },
             {
                 word: "make",
                 phonemes: [
-                    { ipa: "/m/", cue: "Handshape 5, Throat-Side" },
-                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" },
-                    { ipa: "/k/", cue: "Handshape 2, Side-Throat" }
+                    { notation: "m", ipa: "/m/", cue: "Handshape 5" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" },
+                    { notation: "k", ipa: "/k/", cue: "Handshape 2" }
                 ],
-                cueSequence: "5TSST2ST"
+                cueSequence: "5ST2"
             },
             {
                 word: "made",
                 phonemes: [
-                    { ipa: "/m/", cue: "Handshape 5, Throat-Side" },
-                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" },
-                    { ipa: "/d/", cue: "Handshape 1, Side" }
+                    { notation: "m", ipa: "/m/", cue: "Handshape 5" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" },
+                    { notation: "d", ipa: "/d/", cue: "Handshape 1" }
                 ],
-                cueSequence: "5TSST1S"
+                cueSequence: "5ST1"
             }
         ];
 
         // Function to process phoneme breakdown into phonemes and cue sequence
         function processPhonemes(phonemeBreakdown) {
-            const phonemes = phonemeBreakdown.split(' ').map(p => {
+            const phonemeArray = phonemeBreakdown.split(' ');
+            const phonemes = phonemeArray.map(p => {
                 if (phonemeMap.Consonants[p]) {
-                    return phonemeMap.Consonants[p];
+                    return { notation: p, ...phonemeMap.Consonants[p] };
                 } else if (phonemeMap.Vowels[p]) {
-                    return phonemeMap.Vowels[p];
+                    return { notation: p, ...phonemeMap.Vowels[p] };
                 } else {
-                    return { ipa: p, cue: 'Unknown' };
+                    return { notation: p, ipa: p, cue: 'Unknown' };
                 }
             });
             let cueSequence = '';
             let i = 0;
             while (i < phonemes.length) {
-                if (i + 1 < phonemes.length && phonemeMap.Vowels[phonemeBreakdown.split(' ')[i + 1]]) {
+                if (i + 1 < phonemes.length && phonemeMap.Vowels[phonemeArray[i + 1]]) {
                     // Combine consonant and vowel
                     const consonantCue = phonemes[i].cue.match(/Handshape (\d)/)?.[1] || '';
                     const vowelCue = phonemes[i + 1].cue.replace('Side-Throat (ST)', 'ST');
@@ -239,7 +240,11 @@
             wordData.phonemes.forEach(phoneme => {
                 const card = document.createElement("div");
                 card.className = "phoneme-card";
-                card.innerHTML = `<p>Phoneme: ${phoneme.ipa}</p><p>Cue: ${phoneme.cue}</p>`;
+                card.innerHTML = `
+                    <p>Notation: ${phoneme.notation}</p>
+                    <p>Phoneme: ${phoneme.ipa}</p>
+                    <p>Cue: ${phoneme.cue}</p>
+                `;
                 phonemeContainer.appendChild(card);
             });
 
