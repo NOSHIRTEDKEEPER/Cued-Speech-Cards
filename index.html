@@ -1,619 +1,265 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-family: sans-serif;
-      margin: 0;
-      overflow: hidden; /* Prevent body scrollbars, canvas will handle its own "scrolling" */
-      background-color: #f0f0f0;
-    }
-    #output {
-      margin-top: 20px;
-      font-size: 24px;
-      font-weight: bold;
-      white-space: nowrap;
-      color: #333;
-    }
-    canvas {
-      border: 1px solid #ccc;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      display: block;
-      background-color: #fff;
-      border-radius: 8px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cued Speech Phoneme Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .word-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        .word-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        .phoneme-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .phoneme-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .phoneme-card p {
+            margin: 5px 0;
+            font-size: 1em;
+        }
+        .cue-sequence {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            color: #4CAF50;
+        }
+        .navigation {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div id="output">Syllable: None</div>
-<script>
-// Define card dimensions and spacing constants
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 60;
-const HORIZONTAL_CARD_SPACING = 20;
-const VERTICAL_CARD_SPACING = 25;
+    <h1>Cued Speech Phoneme Display</h1>
+    <div class="word-container" id="wordContainer">
+        <div class="word-header" id="wordHeader">Loading...</div>
+        <div class="phoneme-container" id="phonemeContainer"></div>
+        <div class="cue-sequence" id="cueSequence"></div>
+    </div>
+    <div class="navigation">
+        <button id="prevButton" disabled>Previous</button>
+        <button id="nextButton" disabled>Next</button>
+    </div>
+    <div class="error" id="errorMessage"></div>
 
-const VOWEL_CARD_SIZE = 50;
-// Increased VOWEL_HORIZONTAL_SPACING for better visual separation
-const VOWEL_HORIZONTAL_SPACING = 1;
-const VOWEL_VERTICAL_SPACING = 15;
+    <script>
+        // Phoneme to Cued Speech mapping
+        const phonemeMap = {
+            'Th': { ipa: '/ð/', cue: 'Handshape 8' },
+            'd': { ipa: '/d/', cue: 'Handshape 1' },
+            'w': { ipa: '/w/', cue: 'Handshape 7' },
+            'm': { ipa: '/m/', cue: 'Handshape 4' },
+            'k': { ipa: '/k/', cue: 'Handshape 5' },
+            'ay': { ipa: '/eɪ/', cue: 'Chin-Throat (CT)' }
+        };
 
-// Section spacing
-const SECTION_TITLE_OFFSET = 30;
-const SECTION_GAP = 60;
+        // Fallback data if fetch fails
+        const fallbackWords = [
+            {
+                word: "they",
+                phonemes: [
+                    { ipa: "/ð/", cue: "Handshape 8" },
+                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                ],
+                cueSequence: "8CT"
+            },
+            {
+                word: "day",
+                phonemes: [
+                    { ipa: "/d/", cue: "Handshape 1" },
+                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                ],
+                cueSequence: "1CT"
+            },
+            {
+                word: "way",
+                phonemes: [
+                    { ipa: "/w/", cue: "Handshape 7" },
+                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                ],
+                cueSequence: "7CT"
+            },
+            {
+                word: "make",
+                phonemes: [
+                    { ipa: "/m/", cue: "Handshape 4" },
+                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" },
+                    { ipa: "/k/", cue: "Handshape 5" }
+                ],
+                cueSequence: "4CT5"
+            },
+            {
+                word: "made",
+                phonemes: [
+                    { ipa: "/m/", cue: "Handshape 4" },
+                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" },
+                    { ipa: "/d/", cue: "Handshape 1" }
+                ],
+                cueSequence: "4CT1"
+            }
+        ];
 
-// Scrollbar constants
-const SCROLLBAR_WIDTH = 15;
-const SCROLLBAR_MARGIN = 5;
-const SCROLLBAR_MIN_THUMB_HEIGHT = 30;
-
-let handshapes = [
-  { label: "HS 1: /d, p, zh/", consonant: "d/p/ʒ", color: "rgb(255, 200, 200)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 2: /th (ð), k, v, z/", consonant: "ð/k/v/z", color: "rgb(200, 255, 200)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 3: /s, h, r/", consonant: "s/h/r", color: "rgb(200, 200, 255)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 4: /wh, b, n/", consonant: "hw/b/n", color: "rgb(255, 255, 200)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 5: /m, t, f/", consonant: "m/t/f", color: "rgb(255, 180, 220)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 6: /w, sh, l/", consonant: "w/ʃ/l", color: "rgb(180, 255, 255)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 7: /th (θ), j, g/", consonant: "θ/dʒ/g", color: "rgb(255, 220, 180)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-  { label: "HS 8: /y, ng, ch/", consonant: "j/ŋ/tʃ", color: "rgb(220, 180, 255)", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 }
-];
-
-let positions = [
-  {
-    label: "Side (Throat Vowels)",
-    color: "rgb(200, 200, 255)",
-    currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0,
-    vowels: [
-      { label: "EE", value: "i", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "UR", value: "ɝ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "A", value: "æ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "O", value: "ɑ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 }
-    ]
-  },
-  {
-    label: "Chin (Jaw Vowels)",
-    color: "rgb(255, 200, 200)",
-    currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0,
-    vowels: [
-      { label: "AW", value: "ɔ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "OO", value: "u", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "UE", value: "u", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "OI", value: "ɔɪ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 }
-    ]
-  },
-  {
-    label: "Mouth (Lip/Front Vowels)",
-    color: "rgb(200, 255, 200)",
-    currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0,
-    vowels: [
-      { label: "AY", value: "eɪ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "I", value: "ɪ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "E", value: "ɛ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "OH", value: "oʊ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 }
-    ]
-  },
-  {
-    label: "Throat (Back/Round Vowels)",
-    color: "rgb(255, 255, 180)",
-    currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0,
-    vowels: [
-      { label: "OO", value: "ʊ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "AH", value: "ʌ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "ER", value: "ɚ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 },
-      { label: "IE", value: "aɪ", currentX: 0, currentY: 0, originalGridX: 0, originalGridY: 0 }
-    ]
-  }
-];
-
-let slots = [
-  { label: "Cued Consonant (Handshape)", content: null, x: 0, y: 0, width: CARD_WIDTH, height: CARD_HEIGHT },
-  { label: "Cued Vowel (Position)", content: null, x: 0, y: 0, width: CARD_WIDTH, height: CARD_HEIGHT }
-];
-
-let draggedCard = null;
-let selectedVowel = null;
-let selectedVowelCard = null;
-let selectedPosition = null;
-
-// --- Scrolling Variables ---
-let scrollYOffset = 0;
-let contentTotalHeight = 0;
-let scrollbarThumbHeight = 0;
-let scrollbarThumbY = 0;
-let isScrolling = false;
-let scrollDragOffsetY = 0;
-
-function setup() {
-  createCanvas(windowWidth * 0.95, windowHeight * 0.9);
-  recalculateElementPositions();
-  textAlign(CENTER, CENTER);
-  textSize(16);
-  updateSyllableDisplay();
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth * 0.95, windowHeight * 0.9);
-  recalculateElementPositions();
-}
-
-function recalculateElementPositions() {
-  const currentCanvasWidth = width;
-
-  let currentY = SECTION_GAP / 2 + SECTION_TITLE_OFFSET;
-
-  // --- Handshapes Section Layout ---
-  const handshapeAreaWidth = currentCanvasWidth - HORIZONTAL_CARD_SPACING * 2 - SCROLLBAR_WIDTH;
-  const maxHandshapesPerRow = Math.max(1, Math.floor(handshapeAreaWidth / (CARD_WIDTH + HORIZONTAL_CARD_SPACING)));
-
-  let rowStartHandshapeY = currentY;
-  let currentHandshapeX = 0;
-  let rowHandshapeCount = 0;
-  let currentRowWidth = 0;
-
-  for (let i = 0; i < handshapes.length; i++) {
-    let hs = handshapes[i];
-    let numCardsInThisRow = Math.min(maxHandshapesPerRow, handshapes.length - i);
-    currentRowWidth = numCardsInThisRow * CARD_WIDTH + (numCardsInThisRow - 1) * HORIZONTAL_CARD_SPACING;
-    let rowStartX = (currentCanvasWidth - SCROLLBAR_WIDTH - currentRowWidth) / 2;
-
-    if (rowHandshapeCount === 0) {
-      currentHandshapeX = rowStartX;
-    }
-
-    hs.currentX = currentHandshapeX;
-    hs.currentY = rowStartHandshapeY;
-    hs.originalGridX = hs.currentX;
-    hs.originalGridY = hs.currentY;
-
-    currentHandshapeX += CARD_WIDTH + HORIZONTAL_CARD_SPACING;
-    rowHandshapeCount++;
-
-    if (rowHandshapeCount >= maxHandshapesPerRow || i === handshapes.length - 1) {
-      rowStartHandshapeY += CARD_HEIGHT + VERTICAL_CARD_SPACING;
-      rowHandshapeCount = 0;
-    }
-  }
-
-  currentY = rowStartHandshapeY + SECTION_GAP;
-
-  // --- Positions (Vowels) Section Layout ---
-  const positionAreaWidth = currentCanvasWidth - HORIZONTAL_CARD_SPACING * 2 - SCROLLBAR_WIDTH;
-  const maxPositionsPerRow = Math.max(1, Math.floor(positionAreaWidth / (CARD_WIDTH + HORIZONTAL_CARD_SPACING)));
-
-  let rowStartPositionY = currentY;
-  let currentPositionX = 0;
-  let rowPositionCount = 0;
-
-  for (let i = 0; i < positions.length; i++) {
-    let pos = positions[i];
-    let numCardsInThisRow = Math.min(maxPositionsPerRow, positions.length - i);
-    currentRowWidth = numCardsInThisRow * CARD_WIDTH + (numCardsInThisRow - 1) * HORIZONTAL_CARD_SPACING;
-    let rowStartX = (currentCanvasWidth - SCROLLBAR_WIDTH - currentRowWidth) / 2;
-
-    if (rowPositionCount === 0) {
-      currentPositionX = rowStartX;
-    }
-
-    pos.currentX = currentPositionX;
-    pos.currentY = rowStartPositionY;
-    pos.originalGridX = pos.currentX;
-    pos.originalGridY = pos.currentY;
-
-    // Layout vowels below their parent position card
-    // Calculate total width needed for vowels *including* their spacing
-    const totalVowelRowWidth = pos.vowels.length * VOWEL_CARD_SIZE + (pos.vowels.length - 1) * VOWEL_HORIZONTAL_SPACING;
-    // Center vowel row under the parent position card
-    let currentVowelX = pos.currentX + (CARD_WIDTH / 2) - (totalVowelRowWidth / 2);
-    let currentVowelY = pos.currentY + CARD_HEIGHT + VOWEL_VERTICAL_SPACING;
-
-    pos.vowels.forEach(vowel => {
-      vowel.currentX = currentVowelX;
-      vowel.currentY = currentVowelY;
-      vowel.originalGridX = vowel.currentX;
-      vowel.originalGridY = vowel.currentY;
-      currentVowelX += VOWEL_CARD_SIZE + VOWEL_HORIZONTAL_SPACING; // Add spacing here
-    });
-
-    currentPositionX += CARD_WIDTH + HORIZONTAL_CARD_SPACING;
-    rowPositionCount++;
-
-    if (rowPositionCount >= maxPositionsPerRow || i === positions.length - 1) {
-      rowStartPositionY += CARD_HEIGHT + VOWEL_VERTICAL_SPACING + VOWEL_CARD_SIZE + VERTICAL_CARD_SPACING;
-      rowPositionCount = 0;
-    }
-  }
-
-  currentY = rowStartPositionY + SECTION_GAP;
-
-  // --- Slots Section Layout ---
-  const slotsWidth = slots.length * CARD_WIDTH + (slots.length - 1) * HORIZONTAL_CARD_SPACING;
-  const slotStartX = (currentCanvasWidth - SCROLLBAR_WIDTH - slotsWidth) / 2;
-
-  slots.forEach((slot, index) => {
-    slot.x = slotStartX + index * (CARD_WIDTH + HORIZONTAL_CARD_SPACING);
-    slot.y = currentY;
-  });
-
-  // Re-apply original positions for cards currently in slots or selected vowels
-  if (slots[0].content) {
-    slots[0].content.currentX = slots[0].x;
-    slots[0].content.currentY = slots[0].y;
-  }
-  if (slots[1].content) {
-    slots[1].content.currentX = slots[1].x;
-    slots[1].content.currentY = slots[1].y;
-  }
-
-  if (selectedVowelCard) {
-      let foundParentPos = false;
-      for (let pos of positions) {
-          for (let vowel of pos.vowels) {
-              if (vowel === selectedVowelCard) {
-                  selectedPosition = pos;
-                  foundParentPos = true;
-                  break;
-              }
-          }
-          if (foundParentPos) break;
-      }
-  }
-
-  // --- Calculate total content height for scrollbar ---
-  let maxContentY = 0;
-  for(let hs of handshapes) maxContentY = Math.max(maxContentY, hs.originalGridY + CARD_HEIGHT);
-  for(let pos of positions) {
-      maxContentY = Math.max(maxContentY, pos.originalGridY + CARD_HEIGHT);
-      // Ensure the *vowel row's lowest point* is considered for content height
-      maxContentY = Math.max(maxContentY, pos.originalGridY + CARD_HEIGHT + VOWEL_VERTICAL_SPACING + VOWEL_CARD_SIZE);
-  }
-  maxContentY = Math.max(maxContentY, slots[0].y + CARD_HEIGHT); // Ensure slots are included
-
-  // Add space for the vowel selection area if a position is in the slot
-  if (slots[1].content) {
-      maxContentY = Math.max(maxContentY, slots[1].y + slots[1].height + SECTION_TITLE_OFFSET + VOWEL_VERTICAL_SPACING + VOWEL_CARD_SIZE + SECTION_GAP);
-  } else {
-      maxContentY = Math.max(maxContentY, slots[1].y + slots[1].height + SECTION_TITLE_OFFSET + SECTION_GAP);
-  }
-
-
-  contentTotalHeight = maxContentY + SECTION_GAP; // Add a final buffer
-  updateScrollbar();
-}
-
-function updateScrollbar() {
-  if (contentTotalHeight > height) { // Only show scrollbar if content overflows canvas height
-    let viewableRatio = height / contentTotalHeight;
-    scrollbarThumbHeight = Math.max(SCROLLBAR_MIN_THUMB_HEIGHT, height * viewableRatio);
-    let scrollableTrackHeight = height - scrollbarThumbHeight;
-
-    // Map scrollYOffset (0 to contentTotalHeight - height) to scrollbarThumbY (0 to scrollableTrackHeight)
-    scrollbarThumbY = map(scrollYOffset, 0, contentTotalHeight - height, 0, scrollableTrackHeight);
-    scrollbarThumbY = constrain(scrollbarThumbY, 0, height - scrollbarThumbHeight); // Ensure thumb stays within bounds
-  } else {
-    scrollbarThumbHeight = 0; // No scrollbar needed
-    scrollYOffset = 0; // Reset scroll offset if content no longer overflows
-  }
-}
-
-function draw() {
-  background(220);
-
-  // Use push/pop for translation to keep drawing coordinates simpler
-  push();
-  translate(0, -scrollYOffset); // Apply the scroll offset to the entire content
-
-  // Draw sections for organization
-  fill(50);
-  noStroke();
-  textSize(20);
-  text("Cued Handshapes (Consonants)", width / 2 - SCROLLBAR_WIDTH / 2, SECTION_GAP / 2 + SECTION_TITLE_OFFSET / 2); // Adjust text position for scrollbar
-  
-  let firstPosCardY = positions[0] ? positions[0].currentY : (height * 0.35);
-  text("Cued Positions (Vowels)", width / 2 - SCROLLBAR_WIDTH / 2, firstPosCardY - SECTION_GAP / 2); // Adjust text position
-
-  let firstSlotY = slots[0] ? slots[0].y : (height * 0.65);
-  text("Syllable Builder Slots", width / 2 - SCROLLBAR_WIDTH / 2, firstSlotY - SECTION_GAP / 2); // Adjust text position
-
-  textSize(16); // Reset text size
-
-  // Draw slots (these remain fixed relative to canvas, so they are drawn after pop())
-  // However, their labels still need to be drawn here *within* the scrolled context for now,
-  // as the slot rectangles are drawn in a loop later.
-  // We'll adjust this for clarity by moving slot content drawing within this section later.
-
-  // Draw handshapes (only if not currently in a slot AND not being dragged)
-  for (let hs of handshapes) {
-    if ((!slots[0].content || slots[0].content !== hs) && draggedCard !== hs) {
-      fill(hs.color);
-      stroke(0);
-      strokeWeight(2);
-      rect(hs.currentX, hs.currentY, CARD_WIDTH, CARD_HEIGHT, 5);
-      fill(0);
-      noStroke();
-      text(hs.label, hs.currentX + CARD_WIDTH / 2, hs.currentY + CARD_HEIGHT / 2);
-    }
-  }
-
-  // Draw positions and vowel cards (only if main position card is not in a slot AND not being dragged)
-  for (let pos of positions) {
-    let isInSlot = slots[1].content && slots[1].content === pos;
-    if (!isInSlot && draggedCard !== pos) {
-      fill(selectedPosition === pos ? `rgba(${pos.color.match(/\d+/g).join(',')}, 0.7)` : pos.color);
-      stroke(0);
-      strokeWeight(2);
-      rect(pos.currentX, pos.currentY, CARD_WIDTH, CARD_HEIGHT, 5);
-      fill(0);
-      noStroke();
-      text(pos.label, pos.currentX + CARD_WIDTH / 2, pos.currentY + CARD_HEIGHT / 2);
-
-      // Draw vowel cards below their position card (these are scrolled with the parent position)
-      for (let vowel of pos.vowels) {
-        fill(vowel === selectedVowelCard ? "rgb(100, 150, 255)" : 240);
-        stroke(0);
-        strokeWeight(2);
-        rect(vowel.currentX, vowel.currentY, VOWEL_CARD_SIZE, VOWEL_CARD_SIZE, 5);
-        fill(0);
-        noStroke();
-        text(vowel.label, vowel.currentX + VOWEL_CARD_SIZE / 2, vowel.currentY + VOWEL_CARD_SIZE / 2);
-      }
-    }
-  }
-
-  pop(); // End translation for scrolled elements
-
-  // --- Draw FIXED elements (slots, dragged card, slot vowel selection area) ---
-
-  // Draw slots (empty rectangles and labels are fixed)
-  for (let slot of slots) {
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    rect(slot.x, slot.y, slot.width, slot.height, 5);
-    fill(0);
-    noStroke();
-    text(slot.label, slot.x + slot.width / 2, slot.y + slot.height / 2);
-  }
-
-  // Draw the cards that are CURRENTLY in slots (fixed on screen)
-  if (slots[0].content && draggedCard !== slots[0].content) {
-    let hs = slots[0].content;
-    fill(hs.color);
-    stroke(0);
-    strokeWeight(2);
-    rect(slots[0].x, slots[0].y, CARD_WIDTH, CARD_HEIGHT, 5);
-    fill(0);
-    noStroke();
-    text(hs.label, slots[0].x + CARD_WIDTH / 2, slots[0].y + CARD_HEIGHT / 2);
-  }
-  if (slots[1].content && draggedCard !== slots[1].content) {
-    let pos = slots[1].content;
-    fill(pos.color);
-    stroke(0);
-    strokeWeight(2);
-    rect(slots[1].x, slots[1].y, CARD_WIDTH, CARD_HEIGHT, 5);
-    fill(0);
-    noStroke();
-    text(pos.label, slots[1].x + CARD_WIDTH / 2, slots[1].y + CARD_HEIGHT / 2);
-  }
-
-  // Draw vowel selection area for position in slot (fixed)
-  if (slots[1].content) {
-    let posInSlot = slots[1].content;
-    textSize(18);
-    fill(0);
-    noStroke();
-    text(`Select a vowel for ${posInSlot.label}:`, width / 2, slots[1].y + slots[1].height + SECTION_TITLE_OFFSET);
-    textSize(16);
-    // Calculate total width needed for vowels *including* their spacing for the slot area
-    const totalVowelRowWidth = posInSlot.vowels.length * VOWEL_CARD_SIZE + (posInSlot.vowels.length - 1) * VOWEL_HORIZONTAL_SPACING;
-    const startX = (width / 2) - (totalVowelRowWidth / 2); // Center it relative to canvas width
-    const vy = slots[1].y + slots[1].height + SECTION_TITLE_OFFSET + VOWEL_VERTICAL_SPACING;
-    for (let i = 0; i < posInSlot.vowels.length; i++) {
-      let vowel = posInSlot.vowels[i];
-      let vx = startX + i * (VOWEL_CARD_SIZE + VOWEL_HORIZONTAL_SPACING);
-      fill(vowel === selectedVowelCard ? "rgb(100, 150, 255)" : 240);
-      stroke(0);
-      strokeWeight(2);
-      rect(vx, vy, VOWEL_CARD_SIZE, VOWEL_CARD_SIZE, 5);
-      fill(0);
-      noStroke();
-      text(vowel.label, vx + VOWEL_CARD_SIZE / 2, vy + VOWEL_CARD_SIZE / 2);
-    }
-  } else {
-    textAlign(CENTER);
-    textSize(14);
-    fill(150);
-    text("Drag a 'Cued Vowel (Position)' card here to select vowels", slots[1].x + slots[1].width / 2, slots[1].y + slots[1].height + SECTION_TITLE_OFFSET);
-  }
-
-  // Draw the dragged card on top if one is being dragged (fixed)
-  if (draggedCard) {
-    fill("rgb(180, 180, 180)");
-    stroke(0);
-    strokeWeight(2);
-    rect(draggedCard.currentX, draggedCard.currentY, CARD_WIDTH, CARD_HEIGHT, 5);
-    fill(0);
-    noStroke();
-    text(draggedCard.label, draggedCard.currentX + CARD_WIDTH / 2, draggedCard.currentY + CARD_HEIGHT / 2);
-  }
-
-  // --- Draw Scrollbar (always fixed to the right of the canvas) ---
-  if (scrollbarThumbHeight > 0 && contentTotalHeight > height) {
-    let scrollbarX = width - SCROLLBAR_WIDTH - SCROLLBAR_MARGIN;
-    fill(200);
-    noStroke();
-    rect(scrollbarX, 0, SCROLLBAR_WIDTH, height);
-
-    fill(150);
-    rect(scrollbarX, scrollbarThumbY, SCROLLBAR_WIDTH, scrollbarThumbHeight, 5);
-  }
-}
-
-function mousePressed() {
-  // Check if mouse is over the scrollbar thumb
-  let scrollbarX = width - SCROLLBAR_WIDTH - SCROLLBAR_MARGIN;
-  if (mouseX > scrollbarX && mouseX < scrollbarX + SCROLLBAR_WIDTH &&
-      mouseY > scrollbarThumbY && mouseY < scrollbarThumbY + scrollbarThumbHeight &&
-      scrollbarThumbHeight > 0) {
-    isScrolling = true;
-    scrollDragOffsetY = mouseY - scrollbarThumbY;
-    return;
-  }
-
-  // Offset mouse coordinates by scrollYOffset for hit testing on SCROLLED content
-  let actualMouseY = mouseY + scrollYOffset;
-
-  // Check for handshape or position card selection for dragging (SCROLLED elements)
-  for (let i = handshapes.length - 1; i >= 0; i--) {
-    let hs = handshapes[i];
-    if ((!slots[0].content || slots[0].content !== hs) && mouseX > hs.currentX && mouseX < hs.currentX + CARD_WIDTH && actualMouseY > hs.currentY && actualMouseY < hs.currentY + CARD_HEIGHT) {
-      draggedCard = hs;
-      return;
-    }
-  }
-
-  for (let i = positions.length - 1; i >= 0; i--) {
-    let pos = positions[i];
-    if ((!slots[1].content || slots[1].content !== pos) && mouseX > pos.currentX && mouseX < pos.currentX + CARD_WIDTH && actualMouseY > pos.currentY && actualMouseY < pos.currentY + CARD_HEIGHT) {
-      draggedCard = pos;
-      return;
-    }
-    let isInSlot = slots[1].content && slots[1].content === pos;
-    // Vowel selection in the main pool is for SCROLLED content
-    if (!isInSlot) {
-      for (let vowel of pos.vowels) {
-        if (mouseX > vowel.currentX && mouseX < vowel.currentX + VOWEL_CARD_SIZE && actualMouseY > vowel.currentY && actualMouseY < vowel.currentY + VOWEL_CARD_SIZE) {
-          selectedVowel = vowel.value;
-          selectedVowelCard = vowel;
-          selectedPosition = pos;
-          updateSyllableDisplay();
-          return;
+        // Function to process phoneme breakdown into phonemes and cue sequence
+        function processPhonemes(phonemeBreakdown) {
+            const phonemes = phonemeBreakdown.split(' ').map(p => phonemeMap[p] || { ipa: p, cue: 'Unknown' });
+            let cueSequence = '';
+            let i = 0;
+            while (i < phonemes.length) {
+                if (i + 1 < phonemes.length && phonemes[i + 1].ipa === '/eɪ/') {
+                    cueSequence += phonemes[i].cue.replace('Handshape ', '') + phonemes[i + 1].cue.replace('Chin-Throat (CT)', 'CT');
+                    i += 2;
+                } else {
+                    cueSequence += phonemes[i].cue.includes('Handshape')
+                        ? phonemes[i].cue.replace('Handshape ', '')
+                        : phonemes[i].cue;
+                    i++;
+                }
+            }
+            return { phonemes, cueSequence };
         }
-      }
-    }
-  }
 
-  // Check for vowel selection in the dedicated selection area when a position is in the slot (FIXED element)
-  if (slots[1].content) {
-    let posInSlot = slots[1].content;
-    const totalVowelRowWidth = posInSlot.vowels.length * VOWEL_CARD_SIZE + (posInSlot.vowels.length - 1) * VOWEL_HORIZONTAL_SPACING;
-    const startX = (width / 2) - (totalVowelRowWidth / 2);
-    const vy = slots[1].y + slots[1].height + SECTION_TITLE_OFFSET + VOWEL_VERTICAL_SPACING;
-    for (let i = 0; i < posInSlot.vowels.length; i++) {
-      let vowel = posInSlot.vowels[i];
-      let vx = startX + i * (VOWEL_CARD_SIZE + VOWEL_HORIZONTAL_SPACING);
-      if (mouseX > vx && mouseX < vx + VOWEL_CARD_SIZE && mouseY > vy && mouseY < vy + VOWEL_CARD_SIZE) {
-        selectedVowel = posInSlot.vowels[i].value;
-        selectedVowelCard = posInSlot.vowels[i];
-        selectedPosition = posInSlot;
-        updateSyllableDisplay();
-        return;
-      }
-    }
-  }
-}
+        let words = [];
+        let currentIndex = 0;
 
-function mouseDragged() {
-  if (isScrolling) {
-    let newThumbY = mouseY - scrollDragOffsetY;
-    let scrollableTrackHeight = height - scrollbarThumbHeight;
-    newThumbY = constrain(newThumbY, 0, scrollableTrackHeight);
+        // Function to display a word
+        function displayWord(index) {
+            if (!words.length) {
+                document.getElementById("errorMessage").textContent = "No words available to display.";
+                return;
+            }
+            const wordData = words[index];
+            document.getElementById("wordHeader").textContent = `Word: ${wordData.word}`;
+            
+            const phonemeContainer = document.getElementById("phonemeContainer");
+            phonemeContainer.innerHTML = "";
+            wordData.phonemes.forEach(phoneme => {
+                const card = document.createElement("div");
+                card.className = "phoneme-card";
+                card.innerHTML = `<p>Phoneme: ${phoneme.ipa}</p><p>Cue: ${phoneme.cue}</p>`;
+                phonemeContainer.appendChild(card);
+            });
 
-    scrollYOffset = map(newThumbY, 0, scrollableTrackHeight, 0, contentTotalHeight - height);
-    scrollYOffset = constrain(scrollYOffset, 0, Math.max(0, contentTotalHeight - height));
-    updateScrollbar();
-  } else if (draggedCard) {
-    draggedCard.currentX = mouseX - CARD_WIDTH / 2;
-    draggedCard.currentY = mouseY - CARD_HEIGHT / 2;
-  }
-}
+            document.getElementById("cueSequence").textContent = `Cue Sequence: ${wordData.cueSequence}`;
 
-function mouseReleased() {
-  if (isScrolling) {
-    isScrolling = false;
-    return;
-  }
-
-  if (draggedCard) {
-    let droppedIntoSlot = false;
-    for (let slot of slots) {
-      if (mouseX > slot.x && mouseX < slot.x + slot.width && mouseY > slot.y && mouseY < slot.y + slot.height) {
-        let prevContent = slot.content;
-        if (slot.label === "Cued Consonant (Handshape)" && draggedCard.consonant) {
-          slot.content = draggedCard;
-          if (prevContent) {
-            prevContent.currentX = prevContent.originalGridX;
-            prevContent.currentY = prevContent.originalGridY;
-          }
-          droppedIntoSlot = true;
-        } else if (slot.label === "Cued Vowel (Position)" && !draggedCard.consonant) {
-          slot.content = draggedCard;
-          selectedVowel = null;
-          selectedVowelCard = null;
-          selectedPosition = draggedCard;
-          if (prevContent) {
-            prevContent.currentX = prevContent.originalGridX;
-            prevContent.currentY = prevContent.originalGridY;
-          }
-          droppedIntoSlot = true;
+            // Update button states
+            document.getElementById("prevButton").disabled = index === 0;
+            document.getElementById("nextButton").disabled = index === words.length - 1;
         }
-        break;
-      }
-    }
 
-    if (!droppedIntoSlot) {
-      let wasInSlot = false;
-      for (let slot of slots) {
-        if (slot.content === draggedCard) {
-          slot.content = null;
-          if (slot.label === "Cued Vowel (Position)") {
-              selectedVowel = null;
-              selectedVowelCard = null;
-              selectedPosition = null;
-          }
-          wasInSlot = true;
-          break;
+        // Fetch data from JSON file
+        async function loadWords() {
+            try {
+                const response = await fetch('words.json', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status} (${response.statusText})`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                
+                // Process each word
+                words = data.map(item => {
+                    const { phonemes, cueSequence } = processPhonemes(item.phoneme_breakdown);
+                    return {
+                        word: item.word,
+                        phonemes: phonemes,
+                        cueSequence: cueSequence
+                    };
+                });
+
+                if (words.length > 0) {
+                    displayWord(currentIndex);
+                } else {
+                    document.getElementById("errorMessage").textContent = "No words found in the database.";
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById("errorMessage").textContent = `Error loading data: ${error.message}. Using fallback data.`;
+                words = fallbackWords; // Use fallback data
+                if (words.length > 0) {
+                    displayWord(currentIndex);
+                }
+            }
         }
-      }
-      draggedCard.currentX = draggedCard.originalGridX;
-      draggedCard.currentY = draggedCard.originalGridY;
-    }
-    draggedCard = null;
-  }
-  updateSyllableDisplay();
-}
 
-function mouseWheel(event) {
-  if (contentTotalHeight > height) {
-    scrollYOffset += event.delta;
-    scrollYOffset = constrain(scrollYOffset, 0, contentTotalHeight - height);
-    updateScrollbar();
-    return false;
-  }
-}
+        // Navigation event listeners
+        document.getElementById("prevButton").addEventListener("click", () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayWord(currentIndex);
+            }
+        });
 
-function updateSyllableDisplay() {
-  let consonantCue = slots[0].content ? slots[0].content.consonant : "";
-  let vowelIPA = selectedVowel ? selectedVowel : "";
+        document.getElementById("nextButton").addEventListener("click", () => {
+            if (currentIndex < words.length - 1) {
+                currentIndex++;
+                displayWord(currentIndex);
+            }
+        });
 
-  let syllableOutput = "Syllable: ";
-
-  if (consonantCue && vowelIPA) {
-    syllableOutput += `/ ${consonantCue.split('/')[0]}${vowelIPA} /`;
-  } else if (consonantCue) {
-    syllableOutput += `Consonant: / ${consonantCue.split('/')[0]} /`;
-  } else if (vowelIPA) {
-    syllableOutput += `Vowel: / ${vowelIPA} /`;
-  } else {
-    syllableOutput += "None";
-  }
-
-  document.getElementById("output").innerText = syllableOutput;
-}
-</script>
+        // Load words on page load
+        loadWords();
+    </script>
 </body>
 </html>
