@@ -103,14 +103,48 @@
 
     <script>
         // Phoneme to Cued Speech mapping
-        const phonemeMap = {
-            'Th': { ipa: '/ð/', cue: 'Handshape 2' },
-            'd': { ipa: '/d/', cue: 'Handshape 1' },
-            'w': { ipa: '/w/', cue: 'Handshape 6' },
-            'm': { ipa: '/m/', cue: 'Handshape 5' },
-            'k': { ipa: '/k/', cue: 'Handshape 2' },
-            'ay': { ipa: '/eɪ/', cue: 'Side-Throat (ST)' }
-        };
+         "phonemeMap": {
+    "Consonants": {
+      "p": { "ipa": "/p/", "cue": "Handshape 1, Throat-Side" },
+      "b": { "ipa": "/b/", "cue": "Handshape 1, Throat-Side" },
+      "m": { "ipa": "/m/", "cue": "Handshape 5, Throat-Side" },
+      "f": { "ipa": "/f/", "cue": "Handshape 4, Throat-Side" },
+      "v": { "ipa": "/v/", "cue": "Handshape 4, Throat-Side" },
+      "Th": { "ipa": "/ð/", "cue": "Handshape 2, Throat-Side" },
+      "th": { "ipa": "/θ/", "cue": "Handshape 2, Throat-Side" },
+      "t": { "ipa": "/t/", "cue": "Handshape 1, Side" },
+      "d": { "ipa": "/d/", "cue": "Handshape 1, Side" },
+      "n": { "ipa": "/n/", "cue": "Handshape 5, Side" },
+      "s": { "ipa": "/s/", "cue": "Handshape 4, Side" },
+      "z": { "ipa": "/z/", "cue": "Handshape 4, Side" },
+      "l": { "ipa": "/l/", "cue": "Handshape 3, Side" },
+      "r": { "ipa": "/r/", "cue": "Handshape 3, Side" },
+      "sh": { "ipa": "/ʃ/", "cue": "Handshape 4, Chin" },
+      "zh": { "ipa": "/ʒ/", "cue": "Handshape 4, Chin" },
+      "ch": { "ipa": "/tʃ/", "cue": "Handshape 2, Chin" },
+      "j": { "ipa": "/dʒ/", "cue": "Handshape 2, Chin" },
+      "y": { "ipa": "/j/", "cue": "Handshape 6, Chin" },
+      "k": { "ipa": "/k/", "cue": "Handshape 2, Side-Throat" },
+      "g": { "ipa": "/g/", "cue": "Handshape 2, Side-Throat" },
+      "ng": { "ipa": "/ŋ/", "cue": "Handshape 5, Side-Throat" },
+      "h": { "ipa": "/h/", "cue": "Handshape 4, Side-Throat" },
+      "w": { "ipa": "/w/", "cue": "Handshape 6, Side-Throat" }
+    },
+    "Vowels": {
+      "ee": { "ipa": "/i/", "cue": "Side-Throat (ST)" },
+      "ay": { "ipa": "/eɪ/", "cue": "Side-Throat (ST)" },
+      "eh": { "ipa": "/ɛ/", "cue": "Side-Throat (ST)" },
+      "ae": { "ipa": "/æ/", "cue": "Side-Throat (ST)" },
+      "ah": { "ipa": "/ə/", "cue": "Side-Throat (ST)" },
+      "aw": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" },
+      "oh": { "ipa": "/oʊ/", "cue": "Side-Throat (ST)" },
+      "oo": { "ipa": "/u/", "cue": "Side-Throat (ST)" },
+      "uh": { "ipa": "/ʌ/", "cue": "Side-Throat (ST)" },
+      "oi": { "ipa": "/ɔɪ/", "cue": "Side-Throat (ST)" },
+      "ou": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" }
+    }
+  }
+};
 
         // Fallback data if fetch fails
         const fallbackWords = [
