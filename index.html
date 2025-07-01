@@ -90,7 +90,7 @@
 </head>
 <body>
     <h1>Cued Speech Phoneme Display</h1>
-    <div class="word-container" id="wordContainer">
+    <div class="word-container" id="wordContainer" aria-live="polite">
         <div class="word-header" id="wordHeader">Loading...</div>
         <div class="phoneme-container" id="phonemeContainer"></div>
         <div class="cue-sequence" id="cueSequence"></div>
@@ -103,107 +103,118 @@
 
     <script>
         // Phoneme to Cued Speech mapping
-         "phonemeMap": {
-    "Consonants": {
-      "p": { "ipa": "/p/", "cue": "Handshape 1, Throat-Side" },
-      "b": { "ipa": "/b/", "cue": "Handshape 1, Throat-Side" },
-      "m": { "ipa": "/m/", "cue": "Handshape 5, Throat-Side" },
-      "f": { "ipa": "/f/", "cue": "Handshape 4, Throat-Side" },
-      "v": { "ipa": "/v/", "cue": "Handshape 4, Throat-Side" },
-      "Th": { "ipa": "/ð/", "cue": "Handshape 2, Throat-Side" },
-      "th": { "ipa": "/θ/", "cue": "Handshape 2, Throat-Side" },
-      "t": { "ipa": "/t/", "cue": "Handshape 1, Side" },
-      "d": { "ipa": "/d/", "cue": "Handshape 1, Side" },
-      "n": { "ipa": "/n/", "cue": "Handshape 5, Side" },
-      "s": { "ipa": "/s/", "cue": "Handshape 4, Side" },
-      "z": { "ipa": "/z/", "cue": "Handshape 4, Side" },
-      "l": { "ipa": "/l/", "cue": "Handshape 3, Side" },
-      "r": { "ipa": "/r/", "cue": "Handshape 3, Side" },
-      "sh": { "ipa": "/ʃ/", "cue": "Handshape 4, Chin" },
-      "zh": { "ipa": "/ʒ/", "cue": "Handshape 4, Chin" },
-      "ch": { "ipa": "/tʃ/", "cue": "Handshape 2, Chin" },
-      "j": { "ipa": "/dʒ/", "cue": "Handshape 2, Chin" },
-      "y": { "ipa": "/j/", "cue": "Handshape 6, Chin" },
-      "k": { "ipa": "/k/", "cue": "Handshape 2, Side-Throat" },
-      "g": { "ipa": "/g/", "cue": "Handshape 2, Side-Throat" },
-      "ng": { "ipa": "/ŋ/", "cue": "Handshape 5, Side-Throat" },
-      "h": { "ipa": "/h/", "cue": "Handshape 4, Side-Throat" },
-      "w": { "ipa": "/w/", "cue": "Handshape 6, Side-Throat" }
-    },
-    "Vowels": {
-      "ee": { "ipa": "/i/", "cue": "Side-Throat (ST)" },
-      "ay": { "ipa": "/eɪ/", "cue": "Side-Throat (ST)" },
-      "eh": { "ipa": "/ɛ/", "cue": "Side-Throat (ST)" },
-      "ae": { "ipa": "/æ/", "cue": "Side-Throat (ST)" },
-      "ah": { "ipa": "/ə/", "cue": "Side-Throat (ST)" },
-      "aw": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" },
-      "oh": { "ipa": "/oʊ/", "cue": "Side-Throat (ST)" },
-      "oo": { "ipa": "/u/", "cue": "Side-Throat (ST)" },
-      "uh": { "ipa": "/ʌ/", "cue": "Side-Throat (ST)" },
-      "oi": { "ipa": "/ɔɪ/", "cue": "Side-Throat (ST)" },
-      "ou": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" }
-    }
-  }
-};
+        const phonemeMap = {
+            "Consonants": {
+                "p": { "ipa": "/p/", "cue": "Handshape 1, Throat-Side" },
+                "b": { "ipa": "/b/", "cue": "Handshape 1, Throat-Side" },
+                "m": { "ipa": "/m/", "cue": "Handshape 5, Throat-Side" },
+                "f": { "ipa": "/f/", "cue": "Handshape 4, Throat-Side" },
+                "v": { "ipa": "/v/", "cue": "Handshape 4, Throat-Side" },
+                "Th": { "ipa": "/ð/", "cue": "Handshape 2, Throat-Side" },
+                "th": { "ipa": "/θ/", "cue": "Handshape 2, Throat-Side" },
+                "t": { "ipa": "/t/", "cue": "Handshape 1, Side" },
+                "d": { "ipa": "/d/", "cue": "Handshape 1, Side" },
+                "n": { "ipa": "/n/", "cue": "Handshape 5, Side" },
+                "s": { "ipa": "/s/", "cue": "Handshape 4, Side" },
+                "z": { "ipa": "/z/", "cue": "Handshape 4, Side" },
+                "l": { "ipa": "/l/", "cue": "Handshape 3, Side" },
+                "r": { "ipa": "/r/", "cue": "Handshape 3, Side" },
+                "sh": { "ipa": "/ʃ/", "cue": "Handshape 4, Chin" },
+                "zh": { "ipa": "/ʒ/", "cue": "Handshape 4, Chin" },
+                "ch": { "ipa": "/tʃ/", "cue": "Handshape 2, Chin" },
+                "j": { "ipa": "/dʒ/", "cue": "Handshape 2, Chin" },
+                "y": { "ipa": "/j/", "cue": "Handshape 6, Chin" },
+                "k": { "ipa": "/k/", "cue": "Handshape 2, Side-Throat" },
+                "g": { "ipa": "/g/", "cue": "Handshape 2, Side-Throat" },
+                "ng": { "ipa": "/ŋ/", "cue": "Handshape 5, Side-Throat" },
+                "h": { "ipa": "/h/", "cue": "Handshape 4, Side-Throat" },
+                "w": { "ipa": "/w/", "cue": "Handshape 6, Side-Throat" }
+            },
+            "Vowels": {
+                "ee": { "ipa": "/i/", "cue": "Side-Throat (ST)" },
+                "ay": { "ipa": "/eɪ/", "cue": "Side-Throat (ST)" },
+                "eh": { "ipa": "/ɛ/", "cue": "Side-Throat (ST)" },
+                "ae": { "ipa": "/æ/", "cue": "Side-Throat (ST)" },
+                "ah": { "ipa": "/ə/", "cue": "Side-Throat (ST)" },
+                "aw": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" },
+                "oh": { "ipa": "/oʊ/", "cue": "Side-Throat (ST)" },
+                "oo": { "ipa": "/u/", "cue": "Side-Throat (ST)" },
+                "uh": { "ipa": "/ʌ/", "cue": "Side-Throat (ST)" },
+                "oi": { "ipa": "/ɔɪ/", "cue": "Side-Throat (ST)" },
+                "ou": { "ipa": "/aʊ/", "cue": "Side-Throat (ST)" }
+            }
+        };
 
         // Fallback data if fetch fails
         const fallbackWords = [
             {
                 word: "they",
                 phonemes: [
-                    { ipa: "/ð/", cue: "Handshape 8" },
-                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                    { ipa: "/ð/", cue: "Handshape 2, Throat-Side" },
+                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "8CT"
+                cueSequence: "2TSST"
             },
             {
                 word: "day",
                 phonemes: [
-                    { ipa: "/d/", cue: "Handshape 1" },
-                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                    { ipa: "/d/", cue: "Handshape 1, Side" },
+                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "1CT"
+                cueSequence: "1SST"
             },
             {
                 word: "way",
                 phonemes: [
-                    { ipa: "/w/", cue: "Handshape 7" },
-                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" }
+                    { ipa: "/w/", cue: "Handshape 6, Side-Throat" },
+                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" }
                 ],
-                cueSequence: "7CT"
+                cueSequence: "6STST"
             },
             {
                 word: "make",
                 phonemes: [
-                    { ipa: "/m/", cue: "Handshape 4" },
-                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" },
-                    { ipa: "/k/", cue: "Handshape 5" }
+                    { ipa: "/m/", cue: "Handshape 5, Throat-Side" },
+                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" },
+                    { ipa: "/k/", cue: "Handshape 2, Side-Throat" }
                 ],
-                cueSequence: "4CT5"
+                cueSequence: "5TSST2ST"
             },
             {
                 word: "made",
                 phonemes: [
-                    { ipa: "/m/", cue: "Handshape 4" },
-                    { ipa: "/eɪ/", cue: "Chin-Throat (CT)" },
-                    { ipa: "/d/", cue: "Handshape 1" }
+                    { ipa: "/m/", cue: "Handshape 5, Throat-Side" },
+                    { ipa: "/eɪ/", cue: "Side-Throat (ST)" },
+                    { ipa: "/d/", cue: "Handshape 1, Side" }
                 ],
-                cueSequence: "4CT1"
+                cueSequence: "5TSST1S"
             }
         ];
 
         // Function to process phoneme breakdown into phonemes and cue sequence
         function processPhonemes(phonemeBreakdown) {
-            const phonemes = phonemeBreakdown.split(' ').map(p => phonemeMap[p] || { ipa: p, cue: 'Unknown' });
+            const phonemes = phonemeBreakdown.split(' ').map(p => {
+                if (phonemeMap.Consonants[p]) {
+                    return phonemeMap.Consonants[p];
+                } else if (phonemeMap.Vowels[p]) {
+                    return phonemeMap.Vowels[p];
+                } else {
+                    return { ipa: p, cue: 'Unknown' };
+                }
+            });
             let cueSequence = '';
             let i = 0;
             while (i < phonemes.length) {
-                if (i + 1 < phonemes.length && phonemes[i + 1].ipa === '/eɪ/') {
-                    cueSequence += phonemes[i].cue.replace('Handshape ', '') + phonemes[i + 1].cue.replace('Chin-Throat (CT)', 'CT');
+                if (i + 1 < phonemes.length && phonemeMap.Vowels[phonemeBreakdown.split(' ')[i + 1]]) {
+                    // Combine consonant and vowel
+                    const consonantCue = phonemes[i].cue.match(/Handshape (\d)/)?.[1] || '';
+                    const vowelCue = phonemes[i + 1].cue.replace('Side-Throat (ST)', 'ST');
+                    cueSequence += consonantCue + vowelCue;
                     i += 2;
                 } else {
+                    // Add standalone phoneme
                     cueSequence += phonemes[i].cue.includes('Handshape')
-                        ? phonemes[i].cue.replace('Handshape ', '')
+                        ? phonemes[i].cue.match(/Handshape (\d)/)?.[1] || phonemes[i].cue
                         : phonemes[i].cue;
                     i++;
                 }
@@ -270,7 +281,7 @@
             } catch (error) {
                 console.error('Fetch error:', error);
                 document.getElementById("errorMessage").textContent = `Error loading data: ${error.message}. Using fallback data.`;
-                words = fallbackWords; // Use fallback data
+                words = fallbackWords;
                 if (words.length > 0) {
                     displayWord(currentIndex);
                 }
