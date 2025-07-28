@@ -47,10 +47,22 @@
             padding: 10px;
             text-align: center;
             min-width: 120px;
+            cursor: move;
+            user-select: none;
+        }
+        .phoneme-card.dragging {
+            opacity: 0.5;
+        }
+        .phoneme-card.drop-target {
+            border: 2px dashed #4CAF50;
         }
         .phoneme-card p {
             margin: 5px 0;
             font-size: 1em;
+        }
+        .combined-card {
+            background-color: #e0f7fa;
+            border: 2px solid #4CAF50;
         }
         .cue-sequence {
             margin-top: 15px;
@@ -150,42 +162,42 @@
             {
                 word: "they",
                 phonemes: [
-                    { notation: "Th", ipa: "/ð/", cue: "Handshape 2" },
-                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "Th", ipa: "/ð/", cue: "Handshape 2", type: "Consonant" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)", type: "Vowel" }
                 ],
                 cueSequence: "2ST"
             },
             {
                 word: "day",
                 phonemes: [
-                    { notation: "d", ipa: "/d/", cue: "Handshape 1" },
-                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "d", ipa: "/d/", cue: "Handshape 1", type: "Consonant" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)", type: "Vowel" }
                 ],
                 cueSequence: "1ST"
             },
             {
                 word: "way",
                 phonemes: [
-                    { notation: "w", ipa: "/w/", cue: "Handshape 6" },
-                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" }
+                    { notation: "w", ipa: "/w/", cue: "Handshape 6", type: "Consonant" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)", type: "Vowel" }
                 ],
                 cueSequence: "6ST"
             },
             {
                 word: "make",
                 phonemes: [
-                    { notation: "m", ipa: "/m/", cue: "Handshape 5" },
-                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" },
-                    { notation: "k", ipa: "/k/", cue: "Handshape 2" }
+                    { notation: "m", ipa: "/m/", cue: "Handshape 5", type: "Consonant" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)", type: "Vowel" },
+                    { notation: "k", ipa: "/k/", cue: "Handshape 2", type: "Consonant" }
                 ],
                 cueSequence: "5ST2"
             },
             {
                 word: "made",
                 phonemes: [
-                    { notation: "m", ipa: "/m/", cue: "Handshape 5" },
-                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)" },
-                    { notation: "d", ipa: "/d/", cue: "Handshape 1" }
+                    { notation: "m", ipa: "/m/", cue: "Handshape 5", type: "Consonant" },
+                    { notation: "ay", ipa: "/eɪ/", cue: "Side-Throat (ST)", type: "Vowel" },
+                    { notation: "d", ipa: "/d/", cue: "Handshape 1", type: "Consonant" }
                 ],
                 cueSequence: "5ST1"
             }
@@ -196,11 +208,11 @@
             const phonemeArray = phonemeBreakdown.split(' ');
             const phonemes = phonemeArray.map(p => {
                 if (phonemeMap.Consonants[p]) {
-                    return { notation: p, ...phonemeMap.Consonants[p] };
+                    return { notation: p, ...phonemeMap.Consonants[p], type: "Consonant" };
                 } else if (phonemeMap.Vowels[p]) {
-                    return { notation: p, ...phonemeMap.Vowels[p] };
+                    return { notation: p, ...phonemeMap.Vowels[p], type: "Vowel" };
                 } else {
-                    return { notation: p, ipa: p, cue: 'Unknown' };
+                    return { notation: p, ipa: p, cue: 'Unknown', type: "Unknown" };
                 }
             });
             let cueSequence = '';
@@ -225,6 +237,7 @@
 
         let words = [];
         let currentIndex = 0;
+        let draggedCard = null;
 
         // Function to display a word
         function displayWord(index) {
@@ -237,14 +250,22 @@
             
             const phonemeContainer = document.getElementById("phonemeContainer");
             phonemeContainer.innerHTML = "";
-            wordData.phonemes.forEach(phoneme => {
+            wordData.phonemes.forEach((phoneme, idx) => {
                 const card = document.createElement("div");
-                card.className = "phoneme-card";
+                card.className = `phoneme-card ${phoneme.combined ? 'combined-card' : ''}`;
+                card.setAttribute('draggable', true);
+                card.dataset.index = idx;
+                card.dataset.type = phoneme.type;
                 card.innerHTML = `
-                    <p>Notation: ${phoneme.notation}</p>
-                    <p>Phoneme: ${phoneme.ipa}</p>
-                    <p>Cue: ${phoneme.cue}</p>
+                    <p>Notation: ${phoneme.notation}${phoneme.combined ? ` + ${phoneme.combinedNotation}` : ''}</p>
+                    <p>Phoneme: ${phoneme.ipa}${phoneme.combined ? ` + ${phoneme.combinedIpa}` : ''}</p>
+                    <p>Cue: ${phoneme.cue}${phoneme.combined ? ` + ${phoneme.combinedCue}` : ''}</p>
                 `;
+                // Add drag event listeners
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('drop', handleDrop);
                 phonemeContainer.appendChild(card);
             });
 
@@ -253,6 +274,108 @@
             // Update button states
             document.getElementById("prevButton").disabled = index === 0;
             document.getElementById("nextButton").disabled = index === words.length - 1;
+        }
+
+        // Drag-and-drop event handlers
+        function handleDragStart(e) {
+            draggedCard = e.target;
+            draggedCard.classList.add('dragging');
+            // Highlight potential drop targets (vowel cards)
+            const phonemeContainer = document.getElementById("phonemeContainer");
+            Array.from(phonemeContainer.children).forEach(card => {
+                if (card !== draggedCard && card.dataset.type === 'Vowel') {
+                    card.classList.add('drop-target');
+                }
+            });
+            e.dataTransfer.setData('text/plain', draggedCard.dataset.index);
+        }
+
+        function handleDragEnd(e) {
+            draggedCard.classList.remove('dragging');
+            draggedCard = null;
+            // Remove drop target highlights
+            const phonemeContainer = document.getElementById("phonemeContainer");
+            Array.from(phonemeContainer.children).forEach(card => {
+                card.classList.remove('drop-target');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (!draggedCard) return;
+
+            const sourceIndex = parseInt(draggedCard.dataset.index);
+            const targetIndex = parseInt(e.currentTarget.dataset.index);
+            const sourceType = draggedCard.dataset.type;
+            const targetType = e.currentTarget.dataset.type;
+
+            // Only allow consonant to be dropped on vowel
+            if (sourceType !== 'Consonant' || targetType !== 'Vowel') {
+                document.getElementById("errorMessage").textContent = "Can only combine a consonant with a vowel.";
+                setTimeout(() => document.getElementById("errorMessage").textContent = "", 2000);
+                return;
+            }
+
+            // Check if consonant is immediately before the vowel
+            if (sourceIndex + 1 !== targetIndex) {
+                document.getElementById("errorMessage").textContent = "Consonant must be immediately before the vowel to combine.";
+                setTimeout(() => document.getElementById("errorMessage").textContent = "", 2000);
+                return;
+            }
+
+            // Combine the phonemes
+            const wordData = words[currentIndex];
+            const consonant = wordData.phonemes[sourceIndex];
+            const vowel = wordData.phonemes[targetIndex];
+            
+            // Create combined phoneme
+            const combinedPhoneme = {
+                notation: consonant.notation,
+                ipa: consonant.ipa,
+                cue: consonant.cue,
+                type: "Combined",
+                combinedNotation: vowel.notation,
+                combinedIpa: vowel.ipa,
+                combinedCue: vowel.cue
+            };
+
+            // Update phonemes array: remove vowel, replace consonant with combined
+            wordData.phonemes.splice(targetIndex, 1); // Remove vowel
+            wordData.phonemes[sourceIndex] = combinedPhoneme; // Replace consonant with combined
+
+            // Update cue sequence
+            const consonantCue = consonant.cue.match(/Handshape (\d)/)?.[1] || '';
+            const vowelCue = vowel.cue.replace('Side-Throat (ST)', 'ST');
+            const combinedCue = consonantCue + vowelCue;
+            // Rebuild cue sequence
+            let newCueSequence = '';
+            let i = 0;
+            while (i < wordData.phonemes.length) {
+                if (wordData.phonemes[i].type === "Combined") {
+                    const c = wordData.phonemes[i].cue.match(/Handshape (\d)/)?.[1] || '';
+                    const v = wordData.phonemes[i].combinedCue.replace('Side-Throat (ST)', 'ST');
+                    newCueSequence += c + v;
+                    i++;
+                } else if (i + 1 < wordData.phonemes.length && wordData.phonemes[i + 1].type === "Vowel") {
+                    const c = wordData.phonemes[i].cue.match(/Handshape (\d)/)?.[1] || '';
+                    const v = wordData.phonemes[i + 1].cue.replace('Side-Throat (ST)', 'ST');
+                    newCueSequence += c + v;
+                    i += 2;
+                } else {
+                    newCueSequence += wordData.phonemes[i].cue.includes('Handshape')
+                        ? wordData.phonemes[i].cue.match(/Handshape (\d)/)?.[1] || wordData.phonemes[i].cue
+                        : wordData.phonemes[i].cue;
+                    i++;
+                }
+            }
+            wordData.cueSequence = newCueSequence;
+
+            // Redisplay the word
+            displayWord(currentIndex);
         }
 
         // Fetch data from JSON file
